@@ -26,7 +26,7 @@ NAS媒体库管理工具。
 ## 安装
 ### 1、Docker
 ```
-docker pull jxxghp/nas-tools:latest
+docker pull a928230991/nas-tools:latest
 ```
 教程见 [这里](docker/readme.md) 。
 
