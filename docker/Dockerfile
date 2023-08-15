@@ -1,4 +1,4 @@
-FROM alpine AS Builder
+FROM alpine:3.17 AS Builder
 RUN apk add --no-cache --virtual .build-deps \
         libffi-dev \
         gcc \
@@ -50,9 +50,10 @@ RUN mkdir ${HOME} \
     && echo 'fs.inotify.max_user_instances=5242880' >> /etc/sysctl.conf \
     && echo "nt ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
     && git config --global pull.ff only \
-    && git clone -b master ${REPO_URL} ${WORKDIR} --depth=1 --recurse-submodule \
+    && git clone -b v3 ${REPO_URL} ${WORKDIR} --depth=1 --recurse-submodule \
     && git config --global --add safe.directory ${WORKDIR} \
     && chmod +x /nas-tools/docker/entrypoint.sh
+
 EXPOSE 3000
 VOLUME ["/config"]
 ENTRYPOINT [ "/init" ]

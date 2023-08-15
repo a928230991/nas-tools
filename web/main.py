@@ -39,7 +39,7 @@ from app.sites import Sites, SiteUserInfo
 from app.subscribe import Subscribe
 from app.sync import Sync
 from app.torrentremover import TorrentRemover
-from app.utils import DomUtils, SystemUtils, ExceptionUtils, StringUtils
+from app.utils import DomUtils, SystemUtils, ExceptionUtils, StringUtils, RequestUtils
 from app.utils.types import *
 from config import PT_TRANSFER_INTERVAL, Config, TMDB_API_DOMAINS
 from web.action import WebAction
@@ -395,6 +395,11 @@ def sitelist():
                            Sites=IndexerSites,
                            Count=len(IndexerSites))
 
+
+# 唤起App中转页面
+@App.route('/open', methods=['POST', 'GET'])
+def open_app():
+    return render_template("openapp.html")
 
 # 站点资源页面
 @App.route('/resources', methods=['POST', 'GET'])
@@ -1199,9 +1204,9 @@ def plex_webhook():
     request_json = json.loads(request.form.get('payload', {}))
     log.debug("收到Plex Webhook报文：%s" % str(request_json))
     # 事件类型
-    event_match = request_json.get("event") in ["media.play", "media.stop"]
+    event_match = request_json.get("event") in ["media.play", "media.stop", "library.new"]
     # 媒体类型
-    type_match = request_json.get("Metadata", {}).get("type") in ["movie", "episode"]
+    type_match = request_json.get("Metadata", {}).get("type") in ["movie", "episode", "show"]
     # 是否直播
     is_live = request_json.get("Metadata", {}).get("live") == "1"
     # 如果事件类型匹配,媒体类型匹配,不是直播
@@ -1658,10 +1663,18 @@ def Img():
     if if_none_match and if_none_match == etag:
         return make_response('', 304)
     # 获取图片数据
-    response = Response(
-        WebUtils.request_cache(url),
-        mimetype='image/jpeg'
-    )
+    if (url.__contains__('douban')):
+        response = Response(
+            RequestUtils(
+                referer="douban.com",
+                content_type='image/webp'
+            ).get_img(url)
+        )
+    else:
+        response = Response(
+            WebUtils.request_cache(url),
+            mimetype='image/jpeg'
+        )
     response.headers.set('Cache-Control', 'max-age=604800')
     response.headers.set('Etag', etag)
     return response
